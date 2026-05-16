@@ -8,4 +8,6 @@ router.post('/create', auth, marchController.createMarch);
 
 router.get('/all', auth, marchController.getMarches);
 
+router.post('/gather', auth, marchController.gatherResource);
+
 module.exports = router;

@@ -23,11 +23,15 @@ model Player {
   stone  Int @default(1000)
   gold   Int @default(1000)
 
+  cityX Int @default(0)
+  cityY Int @default(0)
+
   createdAt  DateTime   @default(now())
 
   buildings  Building[]
   troops Troop[]
   marches March[]
+  alliance AllianceMember[]
 }
 
 model Building {
@@ -70,4 +74,26 @@ model March {
   arrivalTime  DateTime
 
   player Player @relation(fields: [playerId], references: [id])
+}
+
+model Alliance {
+  id          Int      @id @default(autoincrement())
+
+  name        String   @unique
+  tag         String   @unique
+
+  members     AllianceMember[]
+}
+
+model AllianceMember {
+  id           Int      @id @default(autoincrement())
+
+  playerId     Int
+  allianceId   Int
+
+  role         String   @default("member")
+
+  player Player @relation(fields: [playerId], references: [id])
+
+  alliance Alliance @relation(fields: [allianceId], references: [id])
 }

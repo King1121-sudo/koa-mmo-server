@@ -1,46 +1,75 @@
-const { PrismaClient } = require('@prisma/client');
+const { PrismaClient } =
+require('@prisma/client');
 
 const prisma = new PrismaClient();
 
-exports.trainTroops = async (req, res) => {
+const {
+
+    getTroops,
+
+    getTroopByType,
+
+    createTroop,
+
+    updateTroop
+
+} = require('../services/troopService');
+
+exports.trainTroops = async (
+    req,
+    res
+) => {
 
     try {
 
-        const { type, quantity } = req.body;
+        const {
+            type,
+            quantity
+        } = req.body;
 
-        const existing = await prisma.troop.findFirst({
-            where: {
-                playerId: req.playerId,
+        let troop =
+            await getTroopByType(
+
+                prisma,
+
+                req.playerId,
+
                 type
-            }
-        });
+            );
 
-        let troop;
+        if (troop) {
 
-        if (existing) {
+            troop =
+                await updateTroop(
 
-            troop = await prisma.troop.update({
-                where: {
-                    id: existing.id
-                },
-                data: {
-                    quantity: existing.quantity + quantity
-                }
-            });
+                    prisma,
+
+                    troop.id,
+
+                    troop.quantity +
+                    quantity
+                );
 
         } else {
 
-            troop = await prisma.troop.create({
-                data: {
-                    playerId: req.playerId,
+            troop =
+                await createTroop(
+
+                    prisma,
+
+                    req.playerId,
+
                     type,
+
                     quantity
-                }
-            });
+                );
         }
 
         res.json({
-            message: 'Troops trained',
+
+            message:
+                'Troops trained',
+
             troop
         });
 
@@ -54,15 +83,20 @@ exports.trainTroops = async (req, res) => {
     }
 };
 
-exports.getTroops = async (req, res) => {
+exports.getTroops = async (
+    req,
+    res
+) => {
 
     try {
 
-        const troops = await prisma.troop.findMany({
-            where: {
-                playerId: req.playerId
-            }
-        });
+        const troops =
+            await getTroops(
+
+                prisma,
+
+                req.playerId
+            );
 
         res.json({
             troops

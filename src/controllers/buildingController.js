@@ -1,23 +1,38 @@
-const { PrismaClient } = require('@prisma/client');
+const { PrismaClient } =
+require('@prisma/client');
 
 const prisma = new PrismaClient();
 
-exports.createBuilding = async (req, res) => {
+exports.createBuilding = async (
+    req,
+    res
+) => {
 
     try {
 
-        const { type } = req.body;
+        const {
+            type
+        } = req.body;
 
-        const building = await prisma.building.create({
-            data: {
-                playerId: req.playerId,
-                type,
-                level: 1
-            }
-        });
+        const building =
+            await prisma.building.create({
+
+                data: {
+
+                    playerId:
+                        req.playerId,
+
+                    type,
+
+                    level: 1
+                }
+            });
 
         res.json({
-            message: 'Building created',
+
+            message:
+                'Building created',
+
             building
         });
 
@@ -31,18 +46,52 @@ exports.createBuilding = async (req, res) => {
     }
 };
 
-exports.getBuildings = async (req, res) => {
+exports.upgradeBuilding = async (
+    req,
+    res
+) => {
 
     try {
 
-        const buildings = await prisma.building.findMany({
-            where: {
-                playerId: req.playerId
-            }
-        });
+        const {
+            buildingId
+        } = req.body;
+
+        const building =
+            await prisma.building.findUnique({
+
+                where: {
+                    id: buildingId
+                }
+            });
+
+        if (!building) {
+
+            return res.status(404).json({
+                error:
+                    'Building not found'
+            });
+        }
+
+        const upgraded =
+            await prisma.building.update({
+
+                where: {
+                    id: buildingId
+                },
+
+                data: {
+                    level:
+                        building.level + 1
+                }
+            });
 
         res.json({
-            buildings
+
+            message:
+                'Building upgraded',
+
+            building: upgraded
         });
 
     } catch (err) {
@@ -55,41 +104,24 @@ exports.getBuildings = async (req, res) => {
     }
 };
 
-exports.upgradeBuilding = async (req, res) => {
+exports.getBuildings = async (
+    req,
+    res
+) => {
 
     try {
 
-        const { buildingId } = req.body;
+        const buildings =
+            await prisma.building.findMany({
 
-        const building = await prisma.building.findUnique({
-            where: {
-                id: buildingId
-            }
-        });
-
-        if (!building) {
-            return res.status(404).json({
-                error: 'Building not found'
+                where: {
+                    playerId:
+                        req.playerId
+                }
             });
-        }
-
-        const upgradeTime = new Date(
-            Date.now() + 60000
-        );
-
-        const updated = await prisma.building.update({
-            where: {
-                id: buildingId
-            },
-            data: {
-                level: building.level + 1,
-                upgradeEnd: upgradeTime
-            }
-        });
 
         res.json({
-            message: 'Upgrade started',
-            building: updated
+            buildings
         });
 
     } catch (err) {

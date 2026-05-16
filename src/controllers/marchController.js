@@ -1,51 +1,64 @@
-const { PrismaClient } = require('@prisma/client');
+const { PrismaClient } =
+require('@prisma/client');
 
 const prisma = new PrismaClient();
 
-exports.createMarch = async (req, res) => {
+const {
+    startMarch
+} = require('../game/marchEngine');
+
+const {
+    gatherResources
+} = require('../game/resourceEngine');
+
+exports.createMarch = async (
+    req,
+    res
+) => {
 
     try {
 
-        const {
-            startX,
-            startY,
-            targetX,
-            targetY,
-            troopType,
-            troopAmount
-        } = req.body;
+        const result =
+            await startMarch({
 
-        const distance = Math.sqrt(
-            Math.pow(targetX - startX, 2) +
-            Math.pow(targetY - startY, 2)
-        );
+                prisma,
 
-        const travelSeconds = distance * 5;
+                io: req.app.get('io'),
 
-        const arrivalTime = new Date(
-            Date.now() + travelSeconds * 1000
-        );
-
-        const march = await prisma.march.create({
-            data: {
                 playerId: req.playerId,
 
-                startX,
-                startY,
+                body: req.body
+            });
 
-                targetX,
-                targetY,
+        res.json(result);
 
-                troopType,
-                troopAmount,
+    } catch (err) {
 
-                arrivalTime
-            }
+        console.log(err);
+
+        res.status(500).json({
+            error: err.message
         });
+    }
+};
+
+exports.getMarches = async (
+    req,
+    res
+) => {
+
+    try {
+
+        const marches =
+            await prisma.march.findMany({
+                where: {
+                    playerId:
+                        req.playerId
+                }
+            });
 
         res.json({
-            message: 'March started',
-            march
+            marches
         });
 
     } catch (err) {
@@ -58,18 +71,37 @@ exports.createMarch = async (req, res) => {
     }
 };
 
-exports.getMarches = async (req, res) => {
+exports.gatherResource = async (
+    req,
+    res
+) => {
 
     try {
 
-        const marches = await prisma.march.findMany({
-            where: {
-                playerId: req.playerId
-            }
-        });
+        const {
+            resourceType,
+            amount
+        } = req.body;
+
+        const player =
+            await gatherResources({
+
+                prisma,
+
+                playerId:
+                    req.playerId,
+
+                resourceType,
+
+                amount
+            });
 
         res.json({
-            marches
+
+            message:
+                'Resources gathered',
+
+            player
         });
 
     } catch (err) {
