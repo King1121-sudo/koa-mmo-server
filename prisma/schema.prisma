@@ -1,0 +1,73 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Get a free hosted Postgres database in seconds: `npx create-db`
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Player {
+  id         Int        @id @default(autoincrement())
+  username   String     @unique
+  password   String
+  power      Int        @default(100)
+
+  food   Int @default(1000)
+  wood   Int @default(1000)
+  stone  Int @default(1000)
+  gold   Int @default(1000)
+
+  createdAt  DateTime   @default(now())
+
+  buildings  Building[]
+  troops Troop[]
+  marches March[]
+}
+
+model Building {
+  id          Int       @id @default(autoincrement())
+
+  playerId    Int
+  type        String
+  level       Int       @default(1)
+
+  upgradeEnd  DateTime?
+
+  player      Player    @relation(fields: [playerId], references: [id])
+}
+
+model Troop {
+  id         Int      @id @default(autoincrement())
+
+  playerId   Int
+
+  type       String
+  quantity   Int      @default(0)
+
+  player Player @relation(fields: [playerId], references: [id])
+}
+
+model March {
+  id           Int      @id @default(autoincrement())
+
+  playerId     Int
+
+  startX       Int
+  startY       Int
+
+  targetX      Int
+  targetY      Int
+
+  troopType    String
+  troopAmount  Int
+
+  arrivalTime  DateTime
+
+  player Player @relation(fields: [playerId], references: [id])
+}
